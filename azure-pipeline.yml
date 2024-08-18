@@ -1,0 +1,70 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+#name: $(Build.SourceBranchName)-$(Date:MM-dd-yyyy)$(Rev:.r)-$(Build.BuildId)-$(Build.DefinitionVersion)-$(System.DefinitionId)
+name: $(rev:r)
+trigger:
+- main
+variables:
+ - name: abc
+   value: 'template'
+pool: viv-poc
+
+resources:
+  repositories:
+    - repository: catalog
+      type: git
+      endpoint: Catalog_read_access
+      name: 'catalog/catalog'
+      ref: azure-pipelines
+
+steps:
+- checkout: catalog
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)/'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    CleanTargetFolder: true
+    OverWrite: true
+ 
+# - task: Bash@3
+#   inputs:
+#     filePath: ${{format('echo ./Script-{0}/create-azinfra.ps1', '$(abc)')}}#'format(''./Script-{0}/create-azinfra.ps1'', $abc)'
+#     arguments: '-Name chai-test-rg -Location eastus'
+
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      ${{format('echo ./Script-{0}/create-azinfra.ps1', '$(abc)')}}
+# - task: AzureCLI@2
+#   inputs:
+#     azureSubscription: 'Azure_chai_MSDN'
+#     scriptType: 'ps'
+#     scriptLocation: 'scriptPath'
+#     scriptPath: ${{format('./Script-{0}/create-azinfra.ps1', '$(abc)')}}
+# - task: AzureCLI@2
+#   inputs:
+#     azureSubscription: 'Azure_chai_MSDN'
+#     scriptType: 'ps'
+#     scriptLocation: 'scriptPath'
+#     scriptPath: format('./Script-{0}/create-azinfra.ps1', $abc)
+#     arguments: '-Name chai-test-rg -Location eastus'
+#     addSpnToEnvironment: true
+#     workingDirectory: '$(System.DefaultWorkingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: Publish build artifacts
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'martech'
+    publishLocation: 'Container'
+
+- task: DownloadBuildArtifacts@1
+  inputs:
+    buildType: 'current'
+    downloadType: 'single'
+    artifactName: 'martech'
+    downloadPath: '$(System.ArtifactsDirectory)'
+- task: printAllVariables@1
