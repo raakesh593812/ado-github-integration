@@ -22,6 +22,7 @@ resources:
 steps:
 - checkout: catalog
 - task: CopyFiles@2
+  displayName: copyjobfromgithub
   inputs:
     SourceFolder: '$(System.DefaultWorkingDirectory)/'
     Contents: '**'
